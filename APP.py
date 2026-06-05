@@ -26,16 +26,16 @@ def products():
         id_or_name = request.args.get("id_or_name")
         if id_or_name:
             try:
-                resultado = search_product(cursor,id_or_name)
+                results = search_product(cursor,id_or_name)
             except ValueError as err:
                 return jsonify({"ERROR_MESSAGE":str(err)}),404
         else:
-            resultado = list_products(cursor)
-        return jsonify(resultado),200
+            results = list_products(cursor)
+        return jsonify(results),200
     if request.method == "POST":
-        dados = request.get_json()
+        data = request.get_json()
         try:
-            product_creation = create_product(cursor,dados["NAME"],dados["CATEGORY"],dados["PRICE"],dados["STOCK"])
+            product_creation = create_product(cursor,data["NAME"],data["CATEGORY"],data["PRICE"],data["STOCK"])
             conn.commit()
             return jsonify({"MESSAGE":product_creation}),201
         except ValueError as err:
@@ -46,7 +46,13 @@ def product(id):
     conn = get_connection()
     cursor = conn.cursor()
     if request.method == "PUT":
-        pass
+        data = request.get_json()
+        try:
+            product_update = update_product(cursor,id,name=data["NAME"],category=data["CATEGORY"],price=data["PRICE"])
+            conn.commit()
+            return jsonify({"MESSAGE":product_update}),200
+        except ValueError as err:
+            return jsonify({"ERROR_MESSAGE":str(err)}),400
     if request.method == "DELETE":
         try:
             product_deletion = delete_product(cursor,id)
