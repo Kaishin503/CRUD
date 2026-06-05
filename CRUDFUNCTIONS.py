@@ -67,103 +67,40 @@ def search_product(cursor,id_or_name):
        
         
 
-def update_product(cursor):
-    while True:
-        try:
-            busca = int(input("Digite O ID Do Produto:"))
-            if not busca:
-                print("ERRO: É Necessário Digitar Um ID!")
-                continue
-            if busca < 1:
-                print("ERRO: ID Inválido, Valor Inicial a partir de 1.")
-                continue
-            break
-        except ValueError:
-            print("ERRO: Digite Um Caractere Válido!")
-    select1 = cursor.execute("SELECT * FROM Products WHERE ProductPK = ?",(busca,))
-    resultado1 = select1.fetchone()
-    if resultado1 is None:
-        print("ERRO: Produto Não Encontrado!")
-        return None
-    id,nome,categoriaFK,preco,quantidade = resultado1
-    select2 = cursor.execute("SELECT CategoryName FROM ProductCategory WHERE CategoryPK = ?",(categoriaFK,))
-    resultado2 = select2.fetchone()
-    for item in resultado2:
-        nome_categoria = item
-    print("Produto Selecionado:")
-    print("ID:{}\nNome: {}\nCategoria: {}\nChave Da Categoria: {}\nPreço: R${}\nQuantidade: {} Unidades\n".format(id,nome,nome_categoria,categoriaFK,preco,quantidade))
-    print("1 - Nome | 2 - Categoria | 3 - Preço ")
-    while True:
-        try:
-            opcao = int(input("Digite A Opção:"))
-            if not opcao:
-                print("ERRO: É Necessário Digitar Uma Opção!")
-                continue
-            if opcao not in [1,2,3]:
-                print("ERRO: Digite Uma Opção Válida!")
-                continue
-            break
-        except ValueError:
-            print("ERRO: Digite Um Caractere Válido!")
-    if opcao == 1:
-        while True:
-            novo_nome = input("Digite O Novo Nome:")
-            novo_nome = novo_nome.lower()
-            if not novo_nome:
-                print("ERRO: É Necessário Digitar Um Nome!")
-                continue
-            if novo_nome.isdigit():
-                print("ERRO: Nome Não Pode Ser Um Número!")
-                continue
-            if novo_nome == nome:
-                print("ERRO: Novo Nome Não Pode Ser O Nome Atual!")
-                continue
-            break
-        cursor.execute("UPDATE Products SET ProductName = ? WHERE ProductPK = ?",(novo_nome,busca))
-        print("Nome Atualizado Com Sucesso!")
-    if opcao == 2:
-        while True:
-            nova_categoria = input("Digite A Nova Categoria:")
-            nova_categoria = nova_categoria.lower()
-            if not nova_categoria:
-                print("ERRO: É Necessário Digitar Uma Categoria!")
-                continue
-            if nova_categoria.isdigit():
-                print("ERRO: Categoria Não Pode Ser Um Número!")
-                continue
-            if nova_categoria == nome_categoria:
-                print("ERRO: Nova Categoria Não Pode Ser A Categoria Atual!")
-                continue
-            break
-        select3 = cursor.execute("SELECT CategoryPK FROM ProductCategory WHERE CategoryName = ?",(nova_categoria,))
-        resultado3 = select3.fetchone()
-        for categoriapk in resultado3:
-            pass
-        if resultado3 is None:
-            print("ERRO: Categoria Não Existe!")
-            return None
-        cursor.execute("UPDATE Products SET CategoryFK = ? WHERE ProductPK = ?",(categoriapk,busca))
-        print("Categoria Atualizada Com Sucesso!")
-    if opcao == 3:
-         while True:
-            try:
-                novo_preco = float(input("Digite O Novo Preço:"))
-                if not novo_preco:
-                    print("ERRO: É Necessário Digitar Um Preço!")
-                    continue
-                if novo_preco <= 0:
-                    print("ERRO: Novo Nome Não Pode Ser Menor Ou Igual A Zero!")
-                    continue
-                if novo_preco == preco:
-                    print("ERRO: Novo Preço Não Pode Ser O Mesmo Que O Atual!")
-                    continue
-                break
-            except ValueError:
-                print("ERRO: Digite Um Caractere Válido!")
-            cursor.execute("UPDATE Products SET ProductPrice = ? WHERE ProductPK = ?",(novo_preco,busca))
-            print("Preço Atualizado Com Sucesso!")
-
-
+def update_product(cursor,id,name=None,category=None,price=None):
+    info_list = {}
+    try:
+        id = int(id)
+    except ValueError:
+        raise ValueError("ERROR: ID Must Be A Number!")
+    if id is None:
+        raise ValueError("ERROR: You Must Insert An ID!")
+    product = cursor.execute("SELECT * FROM Products WHERE ProductPK = ?",(id,))
+    if product.fetchall() is None:
+        raise ValueError("ERROR: Product Does Not Exist!")
+    if name is not None:
+        name = name.lower()
+        info_list.update({"NAME":name})
+    if category is not None:
+        category_verification = cursor.execute("SELECT CategoryPK FROM ProductCategory WHERE CategoryName = ?",(category.lower(),))
+        if category_verification.fetchone() == None:
+            raise ValueError("ERROR: Category Does Not Exist!")
+        else:
+            info_list.update({"CATEGORY":category_verification.fetchone()})
+    if price is not None:
+        if price <= 0:
+            raise ValueError("ERROR: Price Cannot Be Lower Than 0")
+        else:
+            info_list.update({"PRICE":price})
+    if name == None and category == None and price == None:
+        raise ValueError("ERROR: You Must Give At Least One Argument To Update!")
+    if info_list["NAME"]:
+        cursor.execute("UPDATE Products SET ProductName = ? WHERE ProductPK = ?",(info_list["NAME"],id))
+    if info_list["CATEGORY"]:
+        cursor.execute("UPDATE Products SET CategoryFK = ? WHERE ProductPK = ?",(info_list["CATEGORY"],id))
+    if info_list["PRICE"]:
+        cursor.execute("UPDATE Products SET ProductPrice = ? WHERE ProductPK = ?",info_list["PRICE"],id)
+    return "Product Updated Successfully."
 def delete_product(cursor,id):
     search = cursor.execute("SELECT * FROM Products WHERE ProductPK = ?",(id,))
     product = search.fetchone()
@@ -171,4 +108,3 @@ def delete_product(cursor,id):
         raise ValueError("ERROR: Product Does Not Exist!")
     cursor.execute("DELETE FROM Products WHERE ProductPK = ?",(id,))
     return "Product Successfully Deleted."
-
