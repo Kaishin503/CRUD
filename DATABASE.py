@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 engine = create_engine(f"mysql+pymysql://{os.getenv("DB_USER")}:{os.getenv("DB_PWRD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}",echo=True)
-
 class Base(DeclarativeBase):
     pass
 
@@ -30,7 +29,7 @@ class Products(Base):
     ProductName = Column("PRODUCT_NAME",String(100),unique=True,nullable=False)
     ProductCategory = Column("PRODUCT_CATEGORY_ID",Integer,ForeignKey("PRODUCT_CATEGORY.CATEGORY_ID",ondelete="CASCADE"),nullable=False)
     ProductSubcategory = Column("PRODUCT_SUBCATEGORY_ID",Integer,ForeignKey("PRODUCT_SUBCATEGORY.SUBCATEGORY_ID",ondelete="CASCADE"),nullable=False)
-    Price = Column("PRODUCT_PRICE",Float,CheckConstraint("PRODUCT_PRICE <= 0",name="PRODUCT_PRICE_0"),nullable=False)
-    Stock = Column("PRODUCT_STOCK",Integer,CheckConstraint("PRODUCT_STOCK <= 0",name="PRODUCT_STOCK_0"),nullable=False)
+    Price = Column("PRODUCT_PRICE",Float,CheckConstraint("PRODUCT_PRICE >= 0",name="PRODUCT_PRICE_0"),nullable=False)
+    Stock = Column("PRODUCT_STOCK",Integer,CheckConstraint("PRODUCT_STOCK >= 0",name="PRODUCT_STOCK_0"),nullable=False)
     CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
 Base.metadata.create_all(bind=engine)
