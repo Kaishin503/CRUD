@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine,String,ForeignKey,Column,Integer,DateTime,text
+from sqlalchemy import create_engine,String,ForeignKey,Column,Integer,DateTime,text,Float,CheckConstraint
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 
 import os
@@ -29,5 +29,8 @@ class Products(Base):
     ProductID = Column("PRODUCT_ID",Integer,primary_key=True,autoincrement=True)
     ProductName = Column("PRODUCT_NAME",String(100),unique=True,nullable=False)
     ProductCategory = Column("PRODUCT_CATEGORY_ID",Integer,ForeignKey("PRODUCT_CATEGORY.CATEGORY_ID",ondelete="CASCADE"),nullable=False)
-    ProductSubcategory = Column("PRODUCT_CATEGORY_ID",Integer,ForeignKey("PRODUCT_SUBCATEGORY.SUBCATEGORY_ID",ondelete="CASCADE"),nullable=False)
+    ProductSubcategory = Column("PRODUCT_SUBCATEGORY_ID",Integer,ForeignKey("PRODUCT_SUBCATEGORY.SUBCATEGORY_ID",ondelete="CASCADE"),nullable=False)
+    Price = Column("PRODUCT_PRICE",Float,CheckConstraint("PRODUCT_PRICE <= 0",name="PRODUCT_PRICE_0"),nullable=False)
+    Stock = Column("PRODUCT_STOCK",Integer,CheckConstraint("PRODUCT_STOCK <= 0",name="PRODUCT_STOCK_0"),nullable=False)
+    CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
 Base.metadata.create_all(bind=engine)
