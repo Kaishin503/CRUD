@@ -23,3 +23,11 @@ class Product_Subcategory(Base):
     SubcategoryName = Column("SUBCATEGORY_NAME",String(100),unique=True,nullable=False)
     CategoryID = Column("CATEGORY_ID",Integer,ForeignKey("PRODUCT_CATEGORY.CATEGORY_ID",ondelete="CASCADE"),nullable=False)
     CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
+
+class Products(Base):
+    __tablename__ = "PRODUCTS"
+    ProductID = Column("PRODUCT_ID",Integer,primary_key=True,autoincrement=True)
+    ProductName = Column("PRODUCT_NAME",String(100),unique=True,nullable=False)
+    ProductCategory = Column("PRODUCT_CATEGORY_ID",Integer,ForeignKey("PRODUCT_CATEGORY.CATEGORY_ID",ondelete="CASCADE"),nullable=False)
+    ProductSubcategory = Column("PRODUCT_CATEGORY_ID",Integer,ForeignKey("PRODUCT_SUBCATEGORY.SUBCATEGORY_ID",ondelete="CASCADE"),nullable=False)
+Base.metadata.create_all(bind=engine)
