@@ -39,3 +39,12 @@ def create_product(name,category,subcategory,price,init_stock):
         session.close()
         return {"SYSTEM_MESSAGE":"PRODUCT SUCCESSFULLY CREATED"}
 
+def list_products():
+    with Session(engine) as session:
+        product_list = []
+        products = session.query(Products,Product_Category.CategoryName,Product_Subcategory.SubcategoryName).join(Product_Category, Products.ProductCategory == Product_Category.CategoryID).join(Product_Subcategory, Product_Category.CategoryID == Product_Subcategory.CategoryID).all()
+        if len(products) == 0:
+            raise ValueError("NO PRODUCT FOUND")
+        for item in products:
+            product_list.append({item[0].ProductID:[item[0].ProductName,item[0].ProductCategory,item[1],item[2],item[0].ProductSubcategory,item[0].Price,item[0].Stock]})
+        return product_list
