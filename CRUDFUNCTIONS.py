@@ -48,3 +48,17 @@ def list_products():
         for item in products:
             product_list.append({item[0].ProductID:[item[0].ProductName,item[0].ProductCategory,item[1],item[2],item[0].ProductSubcategory,item[0].Price,item[0].Stock]})
         return product_list
+
+def search_product(id=None):
+    if id is not None:
+        with Session(engine) as session:
+            
+            product = session.query(Products,Product_Category.CategoryName,Product_Subcategory.SubcategoryName).join(Product_Category, Products.ProductCategory == Product_Category.CategoryID).join(Product_Subcategory, Product_Category.CategoryID == Product_Subcategory.CategoryID).filter(Products.ProductID == id).first()
+            if product is None:
+                raise ValueError("PRODUCT NOT FOUND")
+            else:
+                return {product[0].ProductID:[product[0].ProductName,product[0].ProductCategory,product[1],product[2],product[0].ProductSubcategory,product[0].Price,product[0].Stock]}
+            
+            
+    else:
+        raise ValueError("ID ARGUMENT NOT GIVEN")
