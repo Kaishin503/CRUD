@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from SCHEMAS import ProductCreate
-from CRUDFUNCTIONS import create_product,list_products
+from CRUDFUNCTIONS import create_product,list_products,search_product
 
 app = FastAPI()
 
@@ -21,4 +21,11 @@ def product_list():
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
 
+@app.get("/products/{id}")
+def product_search(id: int):
+    try:
+        product = search_product(id=id)
+        return product
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
 
