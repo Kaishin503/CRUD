@@ -57,8 +57,16 @@ def search_product(id=None):
             if product is None:
                 raise ValueError("PRODUCT NOT FOUND")
             else:
-                return {product[0].ProductID:[product[0].ProductName,product[0].ProductCategory,product[1],product[2],product[0].ProductSubcategory,product[0].Price,product[0].Stock]}
-            
-            
+                return {product[0].ProductID:[product[0].ProductName,product[0].ProductCategory,product[1],product[2],product[0].ProductSubcategory,product[0].Price,product[0].Stock]}   
     else:
         raise ValueError("ID ARGUMENT NOT GIVEN")
+    
+def delete_product(id):
+    with Session(engine) as session:
+        product = session.query(Products).filter(Products.ProductID == id).first()
+        if product is None:
+            raise ValueError("PRODUCT NOT FOUND")
+        else:
+            session.delete(product)
+            session.commit()
+            return {"MESSAGE":"PRODUCT DELETED"}
