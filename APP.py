@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from SCHEMAS import ProductCreate
-from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product
+from SCHEMAS import ProductCreate,ProductUpdate
+from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product
 
 app = FastAPI()
 
@@ -36,7 +36,13 @@ def product_delete(id: int):
         return delete
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
-    
 
+@app.put("/products/{id}")
+def product_update(id: int,product: ProductUpdate):
+    try:
+        update = update_product(id,name=product.ProductName,category=product.ProductCategory,subcategory=product.ProductSubcategory,price=product.ProductPrice)
+        return update
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
 
 
