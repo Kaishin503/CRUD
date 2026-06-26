@@ -61,6 +61,45 @@ def search_product(id=None):
     else:
         raise ValueError("ID ARGUMENT NOT GIVEN")
     
+def update_product(id, name=None,category=None,subcategory=None,price=None):
+    
+    
+    with Session(engine) as session:
+        product = session.query(Products).filter(Products.ProductID == id).first()
+        if product is None:
+            raise ValueError("PRODUCT NOT FOUND")
+        
+        if name is not None:
+            product_validation = session.query(Products).filter(Products.ProductName == name).first()
+            if product_validation is not None:
+                raise ValueError("PRODUCT NAME ALREADY EXISTS")
+            product.ProductName = name
+
+        if category is not None:
+            category_validation = session.query(Product_Category.CategoryID).filter(Product_Category.CategoryName == category).first()
+            if category_validation is None:
+                raise ValueError("CATEGORY DOES NOT EXIST")
+            product.ProductCategory = category_validation
+        
+        if subcategory is not None:
+            subcategory_verification = session.query(Product_Subcategory.SubcategoryID).filter(Product_Subcategory.SubcategoryName == subcategory).first()
+            if subcategory_verification is None:
+                raise ValueError("SUBCATEGORY DOES NOT EXIST")
+            subcategory_validation = session.query(Product_Subcategory).filter(Product_Subcategory.SubcategoryID == subcategory_verification,Product_Subcategory.CategoryID == category_validation)
+            if subcategory_validation is None:
+                raise ValueError("SUBCATEGORY DOES NOT BELONG TO THIS CATEGORY")
+            product.ProductSubcategory = subcategory
+        if price is not None:
+            if price <= 0:
+                raise ValueError("PRICE CANNOT BE LOWER THAN/EQUAL TO 0:")
+            product.Price = price
+        session.commit()
+    return {"MESSAGE":"PRODUCT UPDATED"}
+        
+
+        
+    
+
 def delete_product(id):
     with Session(engine) as session:
         product = session.query(Products).filter(Products.ProductID == id).first()
