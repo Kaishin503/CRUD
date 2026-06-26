@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from SCHEMAS import ProductCreate
-from CRUDFUNCTIONS import create_product,list_products,search_product
+from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product
 
 app = FastAPI()
 
@@ -28,4 +28,15 @@ def product_search(id: int):
         return product
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
+
+@app.delete("/products/{id}")
+def product_delete(id: int):
+    try: 
+        delete = delete_product(id)
+        return delete
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
+    
+
+
 
