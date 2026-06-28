@@ -1,6 +1,6 @@
-from DATABASE import engine,Products,Product_Category,Product_Subcategory
+from DATABASE import engine,Products,Product_Category,Product_Subcategory,StockLog
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 
 def create_product(name,category,subcategory,price,init_stock):
     with Session(engine) as session:
@@ -51,8 +51,7 @@ def list_products():
 
 def search_product(id=None):
     if id is not None:
-        with Session(engine) as session:
-            
+        with Session(engine) as session: 
             product = session.query(Products,Product_Category.CategoryName,Product_Subcategory.SubcategoryName).join(Product_Category, Products.ProductCategory == Product_Category.CategoryID).join(Product_Subcategory, Product_Category.CategoryID == Product_Subcategory.CategoryID).filter(Products.ProductID == id).first()
             if product is None:
                 raise ValueError("PRODUCT NOT FOUND")
@@ -61,9 +60,7 @@ def search_product(id=None):
     else:
         raise ValueError("ID ARGUMENT NOT GIVEN")
     
-def update_product(id, name=None,category=None,subcategory=None,price=None):
-    
-    
+def update_product(id,name=None,category=None,subcategory=None,price=None):
     with Session(engine) as session:
         product = session.query(Products).filter(Products.ProductID == id).first()
         if product is None:
@@ -89,17 +86,17 @@ def update_product(id, name=None,category=None,subcategory=None,price=None):
             if subcategory_validation is None:
                 raise ValueError("SUBCATEGORY DOES NOT BELONG TO THIS CATEGORY")
             product.ProductSubcategory = subcategory
+
         if price is not None:
             if price <= 0:
                 raise ValueError("PRICE CANNOT BE LOWER THAN/EQUAL TO 0:")
             product.Price = price
+        
         session.commit()
+        session.close()
+
     return {"MESSAGE":"PRODUCT UPDATED"}
         
-
-        
-    
-
 def delete_product(id):
     with Session(engine) as session:
         product = session.query(Products).filter(Products.ProductID == id).first()
@@ -108,4 +105,44 @@ def delete_product(id):
         else:
             session.delete(product)
             session.commit()
+            session.close()
             return {"MESSAGE":"PRODUCT DELETED"}
+
+def stock_in(id,amount):
+    with Session(engine) as session:
+        product_stock = session.query(Products.Stock).filter(Products.ProductID == id).first()
+        if product_stock is None:
+            raise ValueError("PRODUCT NOT FOUND")
+        product_stock = session.query(Products).filter(Products.ProductID == id).update({Products.Stock:Products.Stock + amount})
+        session.commit()
+        session.close()
+        return {"MESSSAGE":"STOCK-IN DONE"}
+
+def stock_out(id,amount):
+    with Session(engine) as session:
+        product_stock = session.query(Products.Stock).filter(Products.ProductID == id).first()
+        if product_stock is None:
+            raise ValueError("PRODUCT NOT FOUND")
+        product_stock = session.query(Products).filter(Products.ProductID == id).update({Products.Stock:Products.Stock - amount})
+        session.commit()
+        session.close()
+        return {"MESSSAGE":"STOCK-OUT DONE"}
+
+def stock_log(id,amount,type):
+    with Session(engine) as session:
+        new_log = StockLog(
+            Type = type,
+            Amount = amount,
+            ProductID = id
+        )
+        session.add(new_log)
+        session.commit()
+        session.close()
+def show_stock_log():
+    with Session(engine) as session:
+        list_log = []
+        log_list = session.query(StockLog).all()
+        for item in log_list:
+            date = datetime.strftime(item.Date,"%H:%M:%S, %d/%m/%Y")
+            list_log.append({item.LogID:{"TYPE":item.Type,"AMOUNT":item.Amount,"PRODUCT_ID":item.ProductID,"DATE":date}})
+        return list_log
