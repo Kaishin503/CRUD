@@ -13,3 +13,6 @@ class ProductUpdate(BaseModel):
     ProductCategory: Optional[str] = None
     ProductSubcategory: Optional[str] = None
     ProductPrice: Optional[float] = None
+
+class ProductStock(BaseModel):
+    Amount: int
