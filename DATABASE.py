@@ -32,4 +32,12 @@ class Products(Base):
     Price = Column("PRODUCT_PRICE",Float,CheckConstraint("PRODUCT_PRICE >= 0",name="PRODUCT_PRICE_0"),nullable=False)
     Stock = Column("PRODUCT_STOCK",Integer,CheckConstraint("PRODUCT_STOCK >= 0",name="PRODUCT_STOCK_0"),nullable=False)
     CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
+
+class StockLog(Base):
+    __tablename__ = "STOCK_LOG"
+    LogID = Column("LOG_ID",Integer,primary_key=True,autoincrement=True)
+    Type = Column("TYPE",String(100),nullable=False)
+    Amount = Column("AMOUNT",Integer,nullable=False)
+    ProductID = Column("PRODUCT_ID",Integer,ForeignKey("PRODUCTS.PRODUCT_ID",ondelete="SET NULL"))
+    Date = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
 Base.metadata.create_all(bind=engine)
