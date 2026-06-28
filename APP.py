@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from SCHEMAS import ProductCreate,ProductUpdate, ProductStock
-from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log
+from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log,product_to_csv,log_to_csv
 
 app = FastAPI()
 
@@ -64,7 +64,17 @@ def stockin(id,amount: ProductStock):
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
 
+
 @app.get("/stock-log")
 def stocklog():
     log = show_stock_log()
     return log
+
+@app.get("/export-products")
+def export():
+    return product_to_csv()
+
+@app.get("/export-log")
+def export():
+    return log_to_csv()
+    
