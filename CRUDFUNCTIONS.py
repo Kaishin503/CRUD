@@ -1,6 +1,9 @@
 from DATABASE import engine,Products,Product_Category,Product_Subcategory,StockLog
 from sqlalchemy.orm import Session
 from datetime import datetime
+import pandas as pd
+from fastapi.responses import StreamingResponse
+import io
 
 def create_product(name,category,subcategory,price,init_stock):
     with Session(engine) as session:
@@ -138,6 +141,7 @@ def stock_log(id,amount,type):
         session.add(new_log)
         session.commit()
         session.close()
+
 def show_stock_log():
     with Session(engine) as session:
         list_log = []
@@ -146,3 +150,30 @@ def show_stock_log():
             date = datetime.strftime(item.Date,"%H:%M:%S, %d/%m/%Y")
             list_log.append({item.LogID:{"TYPE":item.Type,"AMOUNT":item.Amount,"PRODUCT_ID":item.ProductID,"DATE":date}})
         return list_log
+
+def product_to_csv():
+    df = pd.read_sql("SELECT * FROM Products",engine)
+    output = io.StringIO()
+    df.to_csv(output,index=False)
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition":"attachment; filename=Products.csv"
+        }
+    )
+def log_to_csv():
+    df = pd.read_sql("SELECT * FROM STOCK_LOG",engine)
+    output = io.StringIO()
+    df.to_csv(output,index=False)
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition":"attachment; filename=Stock.csv"
+        }
+    )
