@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from SCHEMAS import ProductCreate,ProductUpdate
-from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product
+from SCHEMAS import ProductCreate,ProductUpdate, ProductStock
+from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log
 
 app = FastAPI()
 
@@ -13,6 +13,7 @@ def product_creation(product: ProductCreate):
         return message
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
+    
 @app.get("/products")
 def product_list():
     try:
@@ -45,4 +46,25 @@ def product_update(id: int,product: ProductUpdate):
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
 
+@app.post("/products/stock-in/{id}")
+def stockin(id,amount: ProductStock):
+    try:
+        message = stock_in(id,amount.Amount)
+        stock_log(id,amount.Amount,"STOCK-IN")
+        return message
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
 
+@app.post("/products/stock-out/{id}")
+def stockin(id,amount: ProductStock):
+    try:
+        message = stock_out(id,amount.Amount)
+        stock_log(id,amount.Amount,"STOCK-OUT")
+        return message
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
+
+@app.get("/stock-log")
+def stocklog():
+    log = show_stock_log()
+    return log
