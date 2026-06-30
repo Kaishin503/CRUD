@@ -40,4 +40,11 @@ class StockLog(Base):
     Amount = Column("AMOUNT",Integer,nullable=False)
     ProductID = Column("PRODUCT_ID",Integer,ForeignKey("PRODUCTS.PRODUCT_ID",ondelete="SET NULL"))
     Date = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
+
+class User(Base):
+    __tablename__ = "USERS"
+    UserID = Column("USER_ID",Integer,primary_key=True,autoincrement=True)
+    Username = Column("USERNAME",String(100),unique=True,nullable=False)
+    Password = Column("PASSWORD",String(100),nullable=False)
+    CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
 Base.metadata.create_all(bind=engine)
