@@ -47,4 +47,5 @@ class User(Base):
     Username = Column("USERNAME",String(100),unique=True,nullable=False)
     Password = Column("PASSWORD",String(100),nullable=False)
     CreationDate = Column("CREATION_DATE",DateTime,server_default=text("CURRENT_TIMESTAMP"))
+    
 Base.metadata.create_all(bind=engine)
