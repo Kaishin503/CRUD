@@ -5,12 +5,15 @@ import pandas as pd
 from fastapi.responses import StreamingResponse
 import io
 import bcrypt
-import jwt
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 import os
 from dotenv import load_dotenv
-
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt,JWTError
 load_dotenv()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def create_account(name,password):
     with Session(engine) as session:
@@ -39,15 +42,42 @@ def login(name,password):
             raise ValueError("USER NOT FOUND")
         stored_hash = user_search.Password.encode("utf-8")
         password = password.encode("utf-8")
-        if bcrypt.checkpw(password,stored_hash) == False:
+        if not bcrypt.checkpw(password,stored_hash):
             raise ValueError("INCORRECT PASSWORD")
-        elif bcrypt.checkpw(password,stored_hash) == True:
-            payload = {
-                "sub":str(user_search.UserID),
-                "exp":datetime.now() + timedelta(minutes=30)
+        payload = {
+                "sub": str(user_search.UserID),
+                "exp":datetime.now(timezone.utc) + timedelta(minutes=30)
             }
-            token = jwt.encode(payload,os.getenv("SECRET KEY"),os.getenv("ALGORITHM"))
-            return token
+        token = jwt.encode(payload,os.getenv("SECRET_KEY"),algorithm=os.getenv("ALGORITHM"))
+        return token
+        
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(
+        token,
+        os.getenv("SECRET_KEY"),
+        algorithms=[os.getenv("ALGORITHM")]
+    )
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="USER NOT FOUND"
+        )
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="INVALID TOKEN"
+        )
+    with Session(engine) as session:
+        user = session.query(User).filter(User.UserID == user_id).first()
+        if user is None:
+            raise HTTPException(
+                status_code=401,
+                detail="USER NOT FOUND"
+            )
+        return user
+    
 
 def create_product(name,category,subcategory,price,init_stock):
     with Session(engine) as session:
