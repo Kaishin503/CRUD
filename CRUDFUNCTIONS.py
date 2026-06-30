@@ -4,81 +4,37 @@ from datetime import datetime
 import pandas as pd
 from fastapi.responses import StreamingResponse
 import io
-import bcrypt
-from datetime import datetime,timedelta,timezone
-import os
-from dotenv import load_dotenv
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt,JWTError
-load_dotenv()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-def create_account(name,password):
+def create_category(name):
     with Session(engine) as session:
-        if len(name) <= 4:
-            raise ValueError("NAME MUST BE ABOVE 4 CHARACTERS")
-        name_validation = session.query(User).filter(User.Username == name).first()
-        if name_validation is not None:
-            raise ValueError("NAME ALREADY TAKEN")
-        if len(password) <= 8:
-            raise ValueError("PASSWORD LENGTH MUST BE ABOVE 8 CHARACTERS")
-        hash = bcrypt.hashpw(password.encode("utf-8"),bcrypt.gensalt())
-        hashed_pw = hash.decode("utf-8")
-        new_user = User(
-            Username = name,
-            Password = hashed_pw
+        category_validation = session.query(Product_Category).filter(Product_Category.CategoryName).first()
+        if category_validation is not None:
+            raise ValueError("CATEGORY ALREADY EXISTS")
+        new_category = Product_Category(
+            CategoryName = name
         )
-        session.add(new_user)
+        session.add(new_category)
         session.commit()
         session.close()
-        return {"MESSAGE":"ACCOUNT CREATED"}
+        return {"MESSAGE":"CATEGORY SUCCESSFULLY CREATED"}
 
-def login(name,password):
+def create_subcategory(name,category):
     with Session(engine) as session:
-        user_search = session.query(User).filter(User.Username == name).first()
-        if user_search is None:
-            raise ValueError("USER NOT FOUND")
-        stored_hash = user_search.Password.encode("utf-8")
-        password = password.encode("utf-8")
-        if not bcrypt.checkpw(password,stored_hash):
-            raise ValueError("INCORRECT PASSWORD")
-        payload = {
-                "sub": str(user_search.UserID),
-                "exp":datetime.now(timezone.utc) + timedelta(minutes=30)
-            }
-        token = jwt.encode(payload,os.getenv("SECRET_KEY"),algorithm=os.getenv("ALGORITHM"))
-        return {"TOKEN":token}
-        
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(
-        token,
-        os.getenv("SECRET_KEY"),
-        algorithms=[os.getenv("ALGORITHM")]
-    )
-    except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="USER NOT FOUND"
+        subcategory_validation = session.query(Product_Subcategory).filter(Product_Subcategory.SubcategoryName == name).first()
+        if subcategory_validation is not None:
+            raise ValueError("SUBCATEGORY ALREADY EXISTS")
+        category_id = session.query(Product_Category).filter(Product_Category.CategoryName == category).first()
+        if category is None:
+            raise ValueError("CATEGORY DOES NOT EXIST")
+        new_subcategory = Product_Subcategory(
+            SubcategoryName = name,
+            CategoryID = category_id
         )
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(
-            status_code=401,
-            detail="INVALID TOKEN"
-        )
-    with Session(engine) as session:
-        user = session.query(User).filter(User.UserID == user_id).first()
-        if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="USER NOT FOUND"
-            )
-        return user
+        session.add(new_subcategory)
+        session.commit()
+        session.close()
+        return {"MESSAGE":"SUBCATEGORY SUCCESSFULLY CREATED"}
     
-
 def create_product(name,category,subcategory,price,init_stock):
     with Session(engine) as session:
         name_verification = session.query(Products.ProductName).filter(Products.ProductName == name).first()
