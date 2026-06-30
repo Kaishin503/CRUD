@@ -20,3 +20,10 @@ class ProductStock(BaseModel):
 class UserInfo(BaseModel):
     Username: str
     Password: str
+
+class Category(BaseModel):
+    CategoryName: str
+
+class Subcategory(BaseModel):
+    SubcategoryName: str
+    CategoryID: int
