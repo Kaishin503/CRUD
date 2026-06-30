@@ -16,3 +16,7 @@ class ProductUpdate(BaseModel):
 
 class ProductStock(BaseModel):
     Amount: int
+
+class UserInfo(BaseModel):
+    Username: str
+    Password: str
