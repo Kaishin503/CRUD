@@ -1,10 +1,17 @@
 from fastapi import FastAPI
-from SCHEMAS import ProductCreate,ProductUpdate, ProductStock
-from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log,product_to_csv,log_to_csv
+from SCHEMAS import ProductCreate,ProductUpdate,ProductStock,UserInfo
+from CRUDFUNCTIONS import create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log,product_to_csv,log_to_csv,create_account
 
 app = FastAPI()
 
 
+@app.post("/create-accounts")
+def create_accounts(user: UserInfo):
+    try:
+        message = create_account(user.Username,user.Password)
+        return message
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
 
 @app.post("/products")
 def product_creation(product: ProductCreate):
@@ -64,7 +71,6 @@ def stockin(id,amount: ProductStock):
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
 
-
 @app.get("/stock-log")
 def stocklog():
     log = show_stock_log()
@@ -77,4 +83,4 @@ def export():
 @app.get("/export-log")
 def export():
     return log_to_csv()
-    
+
