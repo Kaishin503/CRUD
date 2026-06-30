@@ -49,7 +49,7 @@ def login(name,password):
                 "exp":datetime.now(timezone.utc) + timedelta(minutes=30)
             }
         token = jwt.encode(payload,os.getenv("SECRET_KEY"),algorithm=os.getenv("ALGORITHM"))
-        return token
+        return {"TOKEN":token}
         
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
