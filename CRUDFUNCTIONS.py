@@ -79,9 +79,24 @@ def list_products():
         if len(products) == 0:
             raise ValueError("NO PRODUCT FOUND")
         for item in products:
-            product_list.append({item[0].ProductID:[item[0].ProductName,item[0].ProductCategory,item[1],item[2],item[0].ProductSubcategory,item[0].Price,item[0].Stock]})
+            creation_date = datetime.strftime(item[0].CreationDate,"%H:%M:%S, %d/%m/%Y")
+            product_list.append({item[0].ProductID:{"NAME":item[0].ProductName,"CATEGORY":item[1],"CATEGORY_ID":item[0].ProductCategory,"SUBCATEGORY":item[2],"SUBCATEGORY_ID":item[0].ProductSubcategory,"PRICE":item[0].Price,"STOCK":item[0].Stock,"CREATION_DATE":creation_date}})
         return product_list
-
+    
+def list_categories_and_subcategories():
+    with Session(engine) as session:
+        category_list = []
+        subcategory_list = []
+        category_join = session.query(Product_Category,Product_Subcategory).join(Product_Subcategory,Product_Category.CategoryID == Product_Subcategory.CategoryID).all()
+        if category_join is None:
+            raise ValueError("NO CATEGORY OR SUBCATEGORY FOUND")
+        for item in category_join:
+            category_date = datetime.strftime(item[0].CreationDate,"%H:%M:%S, %m/%d/%Y")
+            category_list.append({item[0].CategoryID:{"CATEGORY_NAME":item[0].CategoryName,"CREATION_DATE":category_date}})
+            subcategory_date = datetime.strftime(item[1].CreationDate,"%H:%M:%S, %m/%d/%Y")
+            subcategory_list.append({item[1].SubcategoryID:{"CATEGORY_NAME":item[1].SubcategoryName,"CREATION_DATE":subcategory_date}})
+        return {"CATEGORIES":category_list,"SUBCATEGORIES":subcategory_list}
+    
 def search_product(id=None):
     if id is not None:
         with Session(engine) as session: 
