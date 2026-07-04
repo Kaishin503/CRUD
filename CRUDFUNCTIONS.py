@@ -28,7 +28,7 @@ def create_subcategory(name,category):
             raise ValueError("CATEGORY DOES NOT EXIST")
         new_subcategory = Product_Subcategory(
             SubcategoryName = name,
-            CategoryID = category_id
+            CategoryID = category_id.CategoryID
         )
         session.add(new_subcategory)
         session.commit()
@@ -95,7 +95,15 @@ def list_categories_and_subcategories():
             category_list.append({item[0].CategoryID:{"CATEGORY_NAME":item[0].CategoryName,"CREATION_DATE":category_date}})
             subcategory_date = datetime.strftime(item[1].CreationDate,"%H:%M:%S, %m/%d/%Y")
             subcategory_list.append({item[1].SubcategoryID:{"CATEGORY_NAME":item[1].SubcategoryName,"CREATION_DATE":subcategory_date}})
-        return {"CATEGORIES":category_list,"SUBCATEGORIES":subcategory_list}
+        if len(category_list) == 0:
+            categories = session.query(Product_Category).all()
+            if categories is None:
+                raise ValueError("NO CATEGORY FOUND")
+            for item in categories:
+                category_list.append({item.CategoryID:{"CATEGORY_NAME":item.CategoryName,"CREATION_DATE":item.CreationDate}})
+            return {"CATEGORIES":category_list}
+        else:
+            return {"CATEGORIES":category_list,"SUBCATEGORIES":subcategory_list}
     
 def search_product(id=None):
     if id is not None:
@@ -155,7 +163,29 @@ def delete_product(id):
             session.commit()
             session.close()
             return {"MESSAGE":"PRODUCT DELETED"}
-
+        
+def delete_category(id):
+    with Session(engine) as session:
+        category = session.query(Product_Category).filter(Product_Category.CategoryID == id).first()
+        if category is None:
+            raise ValueError("CATEGORY NOT FOUND")
+        else:
+            session.delete(category)
+            session.commit()
+            session.close()
+            return {"MESSAGE":"CATEGORY DELETED"}
+        
+def delete_subcategory(id):
+    with Session(engine) as session:
+        subcategory = session.query(Product_Subcategory).filter(Product_Subcategory.SubcategoryID == id).first()
+        if subcategory is None:
+            raise ValueError("SUBCATEGORY NOT FOUND")
+        else:
+            session.delete(subcategory)
+            session.commit()
+            session.close()
+            return {"MESSAGE":"SUBCATEGORY DELETED"}
+        
 def stock_in(id,amount):
     with Session(engine) as session:
         product_stock = session.query(Products.Stock).filter(Products.ProductID == id).first()
