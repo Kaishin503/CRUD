@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Depends
 from SCHEMAS import ProductCreate,ProductUpdate,ProductStock,UserInfo,Category,Subcategory
-from CRUDFUNCTIONS import create_category,create_subcategory,create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log,product_to_csv,log_to_csv,list_categories_and_subcategories
+from CRUDFUNCTIONS import create_category,create_subcategory,create_product,list_products,search_product,delete_product,update_product,stock_in,stock_out,stock_log,show_stock_log,product_to_csv,log_to_csv,list_categories_and_subcategories,delete_category,delete_subcategory
 from AUTH import create_account,login,get_current_user
 
 app = FastAPI()
@@ -46,6 +46,22 @@ def categories_and_subcategories(current_user = Depends(get_current_user)):
     except ValueError as err:
         return {"ERROR_MESSAGE":str(err)}
 
+@app.delete("/categories/{id}")
+def delete_categories(id: int,current_user = Depends(get_current_user)):
+    try:
+        message = delete_category(id)
+        return message
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
+
+@app.delete("/subcategories/{id}")
+def delete_subcategories(id: int,current_user = Depends(get_current_user)):
+    try:
+        message = delete_subcategory(id)
+        return message
+    except ValueError as err:
+        return {"ERROR_MESSAGE":str(err)}
+    
 @app.post("/products")
 def product_creation(product: ProductCreate,current_user = Depends(get_current_user)):
     try:
